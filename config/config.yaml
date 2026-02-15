@@ -1,0 +1,146 @@
+
+
+# IoT IDS Adapter Configuration
+# All hyperparameters extracted from the paper:
+# "A Learnable Cross-Modal Adapter for Industrial Fault Detection Using Pretrained Vision Models"
+# IEEE Transactions on Industrial Informatics, 2026
+
+# Dataset Configuration
+dataset:
+  name: "UNSW-NB15"  # Options: "NSL-KDD", "UNSW-NB15"
+  nsl_kdd_path: "C:/Users/ATECH STORE/Desktop/projects/Cross-Modal Adapter/NSL_pre_data"
+  unsw_nb15_path: "C:/Users/ATECH STORE/Desktop/projects/Cross-Modal Adapter/UNSW_pre_data"
+  
+  # Data preprocessing (Section V, Lines 459-466)
+  window_size: 288  # Analogous to daily windows (288 = 24h * 12 samples/hour at 5-min)
+  normalization: "minmax"  # Applied jointly to paired signals
+  interpolation: "linear"  # For missing values
+  
+  # Train/test split (Section V, Lines 417-419)
+  test_size: 0.2  # 20% holdout test set
+  val_size: 0.2   # 20% of train for validation
+  seed: 42        # Reproducibility
+
+# Adapter Architecture (Section III.C, Fig. 2)
+adapter:
+  encoder:
+    # 4-layer 1D CNN with progressive downsampling (Lines 247-254)
+    filters: [16, 32, 64, 128]
+    kernel_size: 3
+    stride: 2  # Temporal resolution reduced by half each layer
+    dropout: 0.3
+    activation: "leaky_relu"
+    use_batch_norm: true
+    
+  # Image adapter branch (Lines 301-321)
+  adapter_branch:
+    seed_size: [7, 7]  # Compact seed before upsampling
+    output_size: [224, 224, 3]  # Input-compliant with pretrained models
+    projection_channels: 128
+    
+  # TS reconstruction decoder (mirrors encoder)
+  decoder:
+    mirror_encoder: true
+    
+  # Latent classification head (Lines 294-297)
+  classifier:
+    hidden_dims: [64, 32]
+    use_attention: true  # Self-attention mechanism (Lines 291-294)
+
+# Loss Function Weights (Equation 3, Lines 410-412)
+loss:
+  lambda_rec: 0.5   # Reconstruction loss weight
+  lambda_tv: 0.1    # Total variation loss weight
+  lambda_cls: 0.4   # Classification loss weight
+
+# Training Configuration (Section V, Lines 407-412)
+training:
+  # Adapter training
+  adapter_training:
+    optimizer: "adam"
+    learning_rate: 0.001
+    batch_size: 32
+    epochs: 100
+    early_stopping_patience: 8
+    
+  # Vision backbone fine-tuning (Lines 412-413)
+  backbone_finetuning:
+    learning_rate: 0.001
+    epochs: 20
+    freeze_backbone: true  # Initially freeze, then fine-tune
+
+# Cross-Validation (Lines 417-419)
+cross_validation:
+  n_folds: 5
+  stratified: true
+  seed: 42
+
+# Vision Backbones (Section V.B, Lines 448-453)
+vision_models:
+  # Primary model (best performance in paper)
+  primary: "densenet121"
+  
+  # Supported models
+  available:
+    - "densenet121"
+    - "resnet18"
+    - "efficientnet_b0"
+    - "mobilenet_v3_small"
+    - "vit_b_16"
+  
+  # Pretrained weights
+  pretrained: "imagenet"
+
+# Shape Modality (Algorithm 1, Lines 195-216)
+shape:
+  image_size: [224, 224]
+  format: "binary"  # Binary or RGB
+  
+# Spectrogram Fusion (Section III.B)
+spectrogram:
+  fusion_method: "geometric_mean"  # Options: "geometric_mean", "pca"
+  n_fft: 256
+  hop_length: 64
+
+# Baseline Models (Section V)
+baselines:
+  lstm_attention:
+    hidden_dim: 128
+    num_layers: 2
+    dropout: 0.3
+    
+  cnn_lstm:
+    cnn_filters: [32, 64, 128]
+    lstm_hidden: 128
+    
+  inception_time:
+    use_bottleneck: true
+    depth: 6
+    
+  mini_rocket:
+    num_kernels: 10000
+    
+  ts_transformer:
+    d_model: 128
+    nhead: 8
+    num_layers: 3
+
+# Evaluation Metrics (Lines 420-424)
+metrics:
+  compute:
+    - "precision"
+    - "recall"
+    - "f1"
+    - "auc_roc"
+    - "auc_prc"
+  confidence_interval: 0.95  # 95% CI
+
+# Logging and Checkpointing
+logging:
+  log_dir: "logs"
+  checkpoint_dir: "checkpoints"
+  save_best_only: true
+  verbose: true
+
+# Reproducibility
+random_seed: 42
