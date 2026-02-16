@@ -94,7 +94,13 @@ def main():
         task='binary'
     )
     
-    adapter_model.load_state_dict(torch.load(adapter_checkpoint, map_location=device))
+    # Load checkpoint (handle both raw state_dict and full checkpoint)
+    checkpoint = torch.load(adapter_checkpoint, map_location=device)
+    if isinstance(checkpoint, dict) and 'model_state_dict' in checkpoint:
+        adapter_model.load_state_dict(checkpoint['model_state_dict'])
+    else:
+        adapter_model.load_state_dict(checkpoint)
+    
     adapter_model.freeze_adapter()  # Freeze for image generation
     
     print(f"[SUCCESS] Loaded adapter from: {adapter_checkpoint}")

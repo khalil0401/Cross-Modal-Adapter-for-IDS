@@ -238,10 +238,10 @@ class AdapterTrainer:
                     'history': self.history,
                 }, checkpoint_path)
                 
-                print(f"✓ New best model saved! Val loss: {val_losses['total']:.6f}")
+                print(f"[+] New best model saved! Val loss: {val_losses['total']:.6f}")
             else:
                 self.epochs_without_improvement += 1
-                print(f"✗ No improvement for {self.epochs_without_improvement} epoch(s)")
+                print(f"[-] No improvement for {self.epochs_without_improvement} epoch(s)")
             
             # Early stopping
             if self.epochs_without_improvement >= self.patience:

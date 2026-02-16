@@ -48,25 +48,28 @@ adapter:
     use_attention: true  # Self-attention mechanism (Lines 291-294)
 
 # Loss Function Weights (Equation 3, Lines 410-412)
+# UPDATED: Prioritize classification to fix blank image generation
 loss:
-  lambda_rec: 0.5   # Reconstruction loss weight
+  lambda_rec: 0.3   # Reconstruction loss weight (reduced from 0.5)
   lambda_tv: 0.1    # Total variation loss weight
-  lambda_cls: 0.4   # Classification loss weight
+  lambda_cls: 0.6   # Classification loss weight (increased from 0.4)
 
 # Training Configuration (Section V, Lines 407-412)
+# UPDATED: Increased LR and epochs to fix convergence issues
 training:
   # Adapter training
   adapter_training:
     optimizer: "adam"
-    learning_rate: 0.001
+    learning_rate: 0.003  # Increased from 0.001
     batch_size: 32
-    epochs: 100
-    early_stopping_patience: 8
+    epochs: 200           # Increased from 100
+    early_stopping_patience: 15  # Increased from 8
     
   # Vision backbone fine-tuning (Lines 412-413)
   backbone_finetuning:
     learning_rate: 0.001
     epochs: 20
+    batch_size: 32
     freeze_backbone: true  # Initially freeze, then fine-tune
 
 # Cross-Validation (Lines 417-419)
@@ -76,9 +79,9 @@ cross_validation:
   seed: 42
 
 # Vision Backbones (Section V.B, Lines 448-453)
-vision_models:
+vision_backbone:
   # Primary model (best performance in paper)
-  primary: "densenet121"
+  model: "densenet121"
   
   # Supported models
   available:

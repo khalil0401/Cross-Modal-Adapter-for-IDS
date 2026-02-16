@@ -92,9 +92,9 @@ def main():
     # Create loss
     criterion = CompositeLoss(config, task='binary')
     print(f"\n[LOSS] Composite loss weights:")
-    print(f"  - λ_rec (reconstruction): {criterion.lambda_rec}")
-    print(f"  - λ_tv (total variation): {criterion.lambda_tv}")
-    print(f"  - λ_cls (classification): {criterion.lambda_cls}")
+    print(f"  - lambda_rec (reconstruction): {criterion.lambda_rec}")
+    print(f"  - lambda_tv (total variation): {criterion.lambda_tv}")
+    print(f"  - lambda_cls (classification): {criterion.lambda_cls}")
     
     # Create trainer
     trainer = AdapterTrainer(model, criterion, config, device=device)
